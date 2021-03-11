@@ -16,7 +16,9 @@ impl Display for NoteError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
             NoteError::Default => write!(f, "Note error"),
-            NoteError::Message(ref message) => write!(f, "NoteError: {}", message),
+            NoteError::Message(ref message) => {
+                write!(f, "NoteError: {}", message)
+            }
             NoteError::IO(ref e) => write!(f, "{}", e),
             NoteError::Confy(ref e) => write!(f, "{}", e),
         }

@@ -7,12 +7,13 @@ mod cli;
 mod config;
 mod error;
 mod shell;
+mod command;
 
 pub use error::NoteError;
 
 use chrono::{DateTime, Local};
-use std::path::PathBuf;
 use std::fs::{self, File};
+use std::path::PathBuf;
 
 use cli::{Cli, CliImpl};
 use config::{Config, ConfigImpl};
@@ -39,7 +40,7 @@ pub fn run() -> Result<()> {
     open_in_editor(
         &full_path,
         &config.shell,
-        &cli.editor.unwrap_or(config.editor)
+        &cli.editor.unwrap_or(config.editor),
     )?;
 
     Ok(())
@@ -58,11 +59,18 @@ fn init_notes(config: &ConfigImpl) -> Result<()> {
 /// Open file in editor
 /// editor must be a blocking shell command
 /// editor must take path as first & only arg
-fn open_in_editor(path: &std::path::PathBuf, shell: &str, editor: &str) -> Result<()> {
+fn open_in_editor(
+    path: &std::path::PathBuf,
+    shell: &str,
+    editor: &str,
+) -> Result<()> {
     use std::process::Command;
 
     File::create(path)?;
-    let mut child = Command::new(shell).arg("-c").arg(&format!("{} {:?}", editor, path)).spawn()?;
+    let mut child = Command::new(shell)
+        .arg("-c")
+        .arg(&format!("{} {:?}", editor, path))
+        .spawn()?;
 
     child.wait()?;
 

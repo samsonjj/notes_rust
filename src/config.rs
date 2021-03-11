@@ -1,13 +1,13 @@
 //! Provides some of the data needed to run the notes_rust application.
-//! Intended to be loaded by confy, and then overriden with arguments
+//! Intended to be loaded by confy, and then overridden with arguments
 //! from the command line.
 //!
 //! Accepted environment variables:
 //! - NOTES_STORAGE_DIRECTORY
+use crate::error::NoteError;
 use confy;
 use std::env;
 use std::path::PathBuf;
-use crate::error::NoteError;
 
 const ENV_REPO_DIR: &str = "NOTES_STORAGE_DIRECTORY";
 const ENV_CONFIG_PATH: &str = "NOTES_CONFIG_PATH";
@@ -20,8 +20,8 @@ type Result<T> = std::result::Result<T, NoteError>;
     Config and ConfigImpl
 */
 
-pub trait Config<T> {
-    fn load() -> Result<T>;
+pub trait Config {
+    fn load() -> Result<Box<Self>>;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -31,18 +31,17 @@ pub struct ConfigImpl {
     pub shell: String,
 }
 
-impl Config<ConfigImpl> for ConfigImpl {
-    fn load() -> Result<Self> {
+impl Config for ConfigImpl {
+    fn load() -> Result<Box<Self>> {
         let mut config: ConfigImpl = confy::load_path(config_path())?;
 
-        config.editor = env::var(ENV_EDITOR)
-            .unwrap_or(config.editor);
-        config.repo_path = env::var(ENV_REPO_DIR).map(PathBuf::from)
+        config.editor = env::var(ENV_EDITOR).unwrap_or(config.editor);
+        config.repo_path = env::var(ENV_REPO_DIR)
+            .map(PathBuf::from)
             .unwrap_or(config.repo_path);
-        config.shell = env::var(ENV_SHELL)
-            .unwrap_or(String::from("sh"));
+        config.shell = env::var(ENV_SHELL).unwrap_or(String::from("sh"));
 
-        Ok(config)
+        Ok(Box::new(config))
     }
 }
 
@@ -56,15 +55,14 @@ impl Default for ConfigImpl {
     }
 }
 
-
 /*
     helper functions
 */
 
-const DEFAULT_CONFIG_FILE_NAME: &str    = "config.toml";
-const DEFAULT_REPO_NAME: &str           = "notes_repo";
-const DEFAULT_EDITOR: &str              = "vim";
-const DEFAULT_SHELL: &str               = "sh";
+const DEFAULT_CONFIG_FILE_NAME: &str = "config.toml";
+const DEFAULT_REPO_NAME: &str = "notes_repo";
+const DEFAULT_EDITOR: &str = "vim";
+const DEFAULT_SHELL: &str = "sh";
 
 fn default_editor() -> String {
     String::from(DEFAULT_EDITOR)
@@ -82,7 +80,7 @@ fn default_shell() -> String {
 }
 
 fn config_path() -> PathBuf {
-    if let Ok(path) = env::var(ENV_CONFIG_PATH) { 
+    if let Ok(path) = env::var(ENV_CONFIG_PATH) {
         return path.into();
     }
     if let Some(home) = dirs::home_dir() {
@@ -91,4 +89,3 @@ fn config_path() -> PathBuf {
 
     PathBuf::from("/tmp").join(DEFAULT_CONFIG_FILE_NAME)
 }
-

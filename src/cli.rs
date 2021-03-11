@@ -6,6 +6,10 @@ pub trait Cli {
 }
 
 #[derive(StructOpt)]
+#[structopt(
+    name = "rust_notes",
+    about = "A simple cli for taking daily notes."
+)]
 pub struct CliImpl {
     #[structopt(parse(from_os_str))]
     pub path: Option<std::path::PathBuf>,

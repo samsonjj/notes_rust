@@ -1,4 +1,5 @@
+use std::path::PathBuf;
 
 pub enum Command {
-    Open(path)
+    Open(PathBuf)
 }
