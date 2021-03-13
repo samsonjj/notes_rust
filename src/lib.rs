@@ -19,9 +19,7 @@ type Result<T> = std::result::Result<T, NoteError>;
 /// file in the text editor.
 pub fn run() -> Result<()> {
     let cli = CliImpl::load();
-
     let preferred_editor: &str = cli.editor.as_ref().map(|s| s.as_str()).unwrap_or("vim");
-
     let shell: Shell = Shell::new();
     let editor: Editor = Editor::new(preferred_editor, shell);
 
