@@ -1,3 +1,6 @@
+script:
+  - cargo build --verbose --release
+  - cargo test --verbose
 language: rust
 rust:
   - stable
