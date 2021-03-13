@@ -8,8 +8,4 @@ edition = "2018"
 
 [dependencies]
 structopt = "0.3.21"
-confy = "0.4.0"
-serde_derive = "1.0.123"
-serde = "1.0.123"
-dirs = "3.0.1"
 chrono = "0.4.19"

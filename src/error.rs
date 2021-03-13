@@ -1,7 +1,5 @@
 use std::fmt;
 
-use confy::ConfyError;
-
 use fmt::{Display, Formatter};
 
 #[derive(Debug)]
@@ -9,7 +7,6 @@ pub enum NoteError {
     Default,
     Message(String),
     IO(std::io::Error),
-    Confy(ConfyError),
 }
 
 impl Display for NoteError {
@@ -20,7 +17,6 @@ impl Display for NoteError {
                 write!(f, "NoteError: {}", message)
             }
             NoteError::IO(ref e) => write!(f, "{}", e),
-            NoteError::Confy(ref e) => write!(f, "{}", e),
         }
     }
 }
@@ -31,7 +27,6 @@ impl std::error::Error for NoteError {
             NoteError::Default => None,
             NoteError::Message(_) => None,
             NoteError::IO(ref e) => Some(e),
-            NoteError::Confy(ref e) => Some(e),
         }
     }
 }
@@ -39,11 +34,5 @@ impl std::error::Error for NoteError {
 impl From<std::io::Error> for NoteError {
     fn from(err: std::io::Error) -> NoteError {
         NoteError::IO(err)
-    }
-}
-
-impl From<ConfyError> for NoteError {
-    fn from(err: ConfyError) -> NoteError {
-        NoteError::Confy(err)
     }
 }
