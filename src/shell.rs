@@ -1,25 +1,27 @@
 use std::process::Command;
 use crate::NoteError;
-use crate::repo::Repo;
+use std::path::PathBuf;
 
-pub struct Shell {
+const SHELL_COMMAND: &str = "sh";
+const SHELL_FLAGS: &[&str] = &["-c"];
 
+pub struct Shell {}
+
+impl Shell {
+    pub fn new() -> Shell {
+        Shell{}
+    }
 }
 
 impl Shell {
-    pub fn new() -> Shell { Shell{} }
-}
+    pub fn execute_in_dir(&self, command: &str, dir: &PathBuf) -> Result<(), NoteError> {
+        let mut p = Command::new(SHELL_COMMAND);
+        p.args(SHELL_FLAGS);
+        p.arg(command);
+        p.current_dir(dir);
 
-impl Shell {
-    pub fn execute_in_repo(&self, command: &str) -> Result<(), NoteError> {
-        let mut repo = Repo::new();
-
-        let mut p = Command::new("sh");
-        p.args(&["-c", command]);
-        p.current_dir(repo.get_path());
-
-        let status = p.spawn().expect("failed to spawn process")
-            .wait().expect("error opening in editor");
+        let status = p.spawn().unwrap()
+            .wait().unwrap();
 
         if !status.success() {
             return Err(NoteError::Message(

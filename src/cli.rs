@@ -1,15 +1,11 @@
 use structopt::StructOpt;
 
-pub trait Cli {
-    fn load() -> Self;
-}
-
 #[derive(StructOpt)]
 #[structopt(
     name = "rust_notes",
     about = "A simple cli for taking daily notes.",
 )]
-pub struct CliImpl {
+pub struct Opts {
     #[structopt()]
     pub note_name: Option<String>,
 
@@ -17,8 +13,8 @@ pub struct CliImpl {
     pub editor: Option<String>,
 }
 
-impl Cli for CliImpl {
-    fn load() -> CliImpl {
-        <CliImpl as StructOpt>::from_args()
+impl Opts {
+    pub fn load() -> Opts {
+        <Opts as StructOpt>::from_args()
     }
 }
