@@ -56,15 +56,15 @@ impl<'a> Repo<'a> {
         }
     }
 
-    pub fn open_in_editor(&self, path: &PathBuf) {
-        self.create_nested_file(&path);
+    pub fn open_in_editor(&self, filename: &str) {
+        self.create_nested_file(&self.path.join(filename));
 
         let editor: &str = match self.opts.editor {
             Some(ref s) => &s[..],
             None => DEFAULT_EDITOR,
         };
 
-        self.execute_in_repo(&format!("{} {:?}", editor, path)).unwrap();
+        self.execute_in_repo(&format!("{} {:?}", editor, filename)).unwrap();
     }
 }
 

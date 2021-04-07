@@ -6,7 +6,6 @@ mod shell;
 pub use error::NoteError;
 
 use chrono::{DateTime, Local};
-use std::path::PathBuf;
 
 use crate::cli::Opts;
 use crate::repo::Repo;
@@ -27,7 +26,7 @@ pub fn run() -> Result<()> {
         None => date_filename(Local::now()),
     };
 
-    repo.open_in_editor(&PathBuf::from(&filename));
+    repo.open_in_editor(&filename);
 
     Ok(())
 }
