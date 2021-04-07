@@ -70,15 +70,7 @@ impl<'a> Repo<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::cli::Opts;
-
     #[test]
     fn test_create_nested_file() {
-        let opts = Opts {
-            editor: Some(String::from("vim")),
-            note_name: Some(String::from("something")),
-            repo_path: Some(String::from("something")),
-        };
     }
 }
