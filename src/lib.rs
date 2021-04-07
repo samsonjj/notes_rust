@@ -1,8 +1,7 @@
 mod cli;
 mod error;
-mod shell;
-mod editor;
 mod repo;
+mod shell;
 
 pub use error::NoteError;
 
@@ -10,9 +9,8 @@ use chrono::{DateTime, Local};
 use std::path::PathBuf;
 
 use crate::cli::Opts;
-use crate::shell::Shell;
-use crate::editor::Editor;
 use crate::repo::Repo;
+use crate::shell::ShellImpl;
 
 type Result<T> = std::result::Result<T, NoteError>;
 
@@ -20,14 +18,13 @@ type Result<T> = std::result::Result<T, NoteError>;
 /// file in the text editor.
 pub fn run() -> Result<()> {
     let opts = Opts::load();
-    let shell: Shell = Shell::new();
-    let editor: Editor = Editor::new(&opts, &shell);
-    let repo: Repo = Repo::new(&editor).init().unwrap();
+    let shell: ShellImpl = ShellImpl::new();
+    let repo: Repo = Repo::new(&opts, &shell).init().unwrap();
 
     // filename as given in args, or the current date
     let filename = match opts.note_name {
         Some(ref path) => path.clone(),
-        None => file_compat_date_str(Local::now()),
+        None => date_filename(Local::now()),
     };
 
     repo.open_in_editor(&PathBuf::from(&filename));
@@ -36,6 +33,17 @@ pub fn run() -> Result<()> {
 }
 
 /// Returns a filename compatible date String.
-fn file_compat_date_str(now: DateTime<Local>) -> String {
+fn date_filename(now: DateTime<Local>) -> String {
     now.format("%F").to_string() + ".txt"
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test_date_filename() {
+        let date = date_filename(Local::now());
+        assert_eq!(date.len(), 14);
+    }
 }

@@ -12,7 +12,7 @@ pub enum NoteError {
 impl Display for NoteError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
-            NoteError::Default => write!(f, "Note error"),
+            NoteError::Default => write!(f, "Default NoteError"),
             NoteError::Message(ref message) => {
                 write!(f, "NoteError: {}", message)
             }

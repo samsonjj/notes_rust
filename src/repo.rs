@@ -1,44 +1,53 @@
 //! houses the Repo struct
-use std::path::PathBuf;
-use crate::editor::Editor;
+use crate::cli::Opts;
+use crate::shell::Shell;
 use crate::NoteError;
+use std::path::PathBuf;
+
+const DEFAULT_EDITOR: &str = "vim";
 
 pub struct Repo<'a> {
-    editor: &'a Editor<'a>,
+    opts: &'a Opts,
+    shell: &'a dyn Shell,
+    path: PathBuf,
 }
 
+// non trait functionality
 impl<'a> Repo<'a> {
-    pub fn new(editor: &'a Editor) -> Repo<'a> {
-        Repo{
-            editor,
-        }
+    pub fn new(opts: &'a Opts, shell: &'a dyn Shell) -> Repo<'a> {
+        let path: PathBuf = match &opts.repo_path {
+            Some(path) => PathBuf::from(path),
+            None => Repo::default_path(),
+        };
+        Repo { opts, shell, path }
     }
 
-    pub fn init(self) -> Result<Repo<'a>, NoteError>{
-        let path = self.get_path();
-        if !path.exists() {
-            std::fs::create_dir_all(path)?;
+    pub fn init(self) -> Result<Repo<'a>, NoteError> {
+        if !self.path.exists() {
+            std::fs::create_dir_all(&self.path)?;
         }
         Ok(self)
     }
 
-    fn get_path(&self) -> PathBuf {
+    fn default_path() -> PathBuf {
         let home = std::env::var("HOME")
             .expect("HOME environment variable is not set");
-        let path = PathBuf::from(home)
-            .join(".notes");
+        let path = PathBuf::from(home).join(".notes");
         path
+    }
+
+    fn execute_in_repo(&self, command: &str) -> Result<(), NoteError> {
+        self.shell.execute(command, &self.path)
     }
 
     pub fn create_nested_file(&self, path: &PathBuf) {
         let mut path = path.clone();
         let file_path = path.clone();
 
-        std::env::set_current_dir(self.get_path()).unwrap();
-
         // create any directories, if incoming path is nested
         path.pop();
-        std::fs::create_dir_all(path).unwrap();
+
+        std::fs::create_dir_all(self.path.join(path)).unwrap();
 
         // create file, only if it does not already exist
         // 🌵 otherwise File::create will truncate it
@@ -49,6 +58,27 @@ impl<'a> Repo<'a> {
 
     pub fn open_in_editor(&self, path: &PathBuf) {
         self.create_nested_file(&path);
-        self.editor.open_file(&path, &self.get_path()).unwrap();
+
+        let editor: &str = match self.opts.editor {
+            Some(ref s) => &s[..],
+            None => DEFAULT_EDITOR,
+        };
+
+        self.execute_in_repo(&format!("{} {:?}", editor, path)).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::cli::Opts;
+
+    #[test]
+    fn test_create_nested_file() {
+        let opts = Opts {
+            editor: Some(String::from("vim")),
+            note_name: Some(String::from("something")),
+            repo_path: Some(String::from("something")),
+        };
     }
 }

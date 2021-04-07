@@ -11,6 +11,9 @@ pub struct Opts {
 
     #[structopt(short = "e", long = "editor", env = "EDITOR")]
     pub editor: Option<String>,
+
+    #[structopt(long = "repo", env = "NOTES_REPO")]
+    pub repo_path: Option<String>,
 }
 
 impl Opts {
