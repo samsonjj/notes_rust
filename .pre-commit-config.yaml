@@ -9,3 +9,8 @@ repos:
     rev: d4722e89430631ab96cfb30719f163650b1d4b14
     hooks:
       - id: markdownlint_docker
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: v1.0
+    hooks:
+      - id: fmt
+      - id: cargo-check
