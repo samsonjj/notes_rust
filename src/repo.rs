@@ -64,13 +64,13 @@ impl<'a> Repo<'a> {
             None => DEFAULT_EDITOR,
         };
 
-        self.execute_in_repo(&format!("{} {:?}", editor, filename)).unwrap();
+        self.execute_in_repo(&format!("{} {:?}", editor, filename))
+            .unwrap();
     }
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_create_nested_file() {
-    }
+    fn test_create_nested_file() {}
 }

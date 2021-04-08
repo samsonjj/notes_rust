@@ -3,7 +3,7 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 #[structopt(
     name = "rust_notes",
-    about = "A simple cli for taking daily notes.",
+    about = "A simple cli for taking daily notes."
 )]
 pub struct Opts {
     #[structopt()]

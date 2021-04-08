@@ -32,7 +32,8 @@ impl Shell for ShellImpl {
 
         if !exit_status.success() {
             return Err(NoteError::Message(String::from(format!(
-                "editor process returned failure exit status: {:?}", p
+                "editor process returned failure exit status: {:?}",
+                p
             ))));
         }
 
