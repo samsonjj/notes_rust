@@ -1,13 +1,13 @@
-mod cli;
 mod error;
+mod opts;
 mod repo;
 mod shell;
 
 pub use error::NoteError;
 
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Duration, Local};
 
-use crate::cli::Opts;
+use crate::opts::Opts;
 use crate::repo::Repo;
 use crate::shell::ShellImpl;
 
@@ -20,10 +20,13 @@ pub fn run() -> Result<()> {
     let shell: ShellImpl = ShellImpl::new();
     let repo: Repo = Repo::new(&opts, &shell).init().unwrap();
 
-    // filename as given in args, or the current date
+    // filename as given in args, or the current date + offset
     let filename = match opts.note_name {
         Some(ref path) => path.clone(),
-        None => date_filename(Local::now()),
+        None => {
+            let offset = opts.date_offset.unwrap_or(0);
+            date_filename(Local::now() + Duration::days(offset))
+        }
     };
 
     repo.open_in_editor(&filename);

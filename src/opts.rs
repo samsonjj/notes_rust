@@ -14,6 +14,9 @@ pub struct Opts {
 
     #[structopt(long = "repo", env = "NOTES_REPO")]
     pub repo_path: Option<String>,
+
+    #[structopt(short = "o", long = "offset", allow_hyphen_values = true)]
+    pub date_offset: Option<i64>,
 }
 
 impl Opts {

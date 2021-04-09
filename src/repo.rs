@@ -1,5 +1,5 @@
 //! houses the Repo struct
-use crate::cli::Opts;
+use crate::opts::Opts;
 use crate::shell::Shell;
 use crate::NoteError;
 use std::path::PathBuf;
