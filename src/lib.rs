@@ -2,6 +2,7 @@ mod error;
 mod opts;
 mod repo;
 mod shell;
+mod tutorial;
 
 pub use error::NoteError;
 
@@ -10,6 +11,7 @@ use chrono::{DateTime, Duration, Local};
 use crate::opts::Opts;
 use crate::repo::Repo;
 use crate::shell::ShellImpl;
+use crate::tutorial::{Tutorial, TutorialImpl};
 
 type Result<T> = std::result::Result<T, NoteError>;
 
@@ -17,6 +19,12 @@ type Result<T> = std::result::Result<T, NoteError>;
 /// file in the text editor.
 pub fn run() -> Result<()> {
     let opts = Opts::load();
+
+    if opts.tutorial {
+        TutorialImpl::display();
+        return Ok(());
+    }
+
     let shell: ShellImpl = ShellImpl::new();
     let repo: Repo = Repo::new(&opts, &shell).init().unwrap();
 
