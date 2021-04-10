@@ -47,7 +47,7 @@ impl Tutorial for TutorialImpl {
 
             $ notes -e nano     # opens today's note in nano
 
-                              end tutorial.
+                            end tutorial.
 "#
         )
     }

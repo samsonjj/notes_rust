@@ -1,6 +1,6 @@
 //! houses the Repo struct
 use crate::opts::Opts;
-use crate::shell::Shell;
+use crate::shell::{CommandOutput, Shell};
 use crate::NoteError;
 use std::path::PathBuf;
 
@@ -24,9 +24,44 @@ impl<'a> Repo<'a> {
 
     pub fn init(self) -> Result<Repo<'a>, NoteError> {
         if !self.path.exists() {
-            std::fs::create_dir_all(&self.path)?;
+            std::fs::create_dir_all(&self.path).unwrap();
+        }
+        if !self.path.join(".git").exists() {
+            self.shell.execute("git init", &self.path).unwrap();
+
+            // create readme
+            self.shell
+                .execute(
+                    r##"
+echo "Notes Repository
+
+See [notes_rust](https://github.com/samsonjj/notes_rust)
+" > README.md
+"##,
+                    &self.path,
+                )
+                .unwrap();
+            self.shell.execute("git add README.md", &self.path).unwrap();
+            self.shell
+                .execute("git commit -m \"first commit\"", &self.path)
+                .unwrap();
         }
         Ok(self)
+    }
+
+    pub fn git_commit_all(&self) {
+        let commit_message = "update notes";
+
+        self.execute("git add .").unwrap();
+        self.execute_interactive(&format!(
+            "git commit -m \"{}\"",
+            commit_message
+        ))
+        .unwrap();
+    }
+
+    pub fn push(&self) {
+        self.execute_interactive("git push").unwrap();
     }
 
     fn default_path() -> PathBuf {
@@ -36,8 +71,28 @@ impl<'a> Repo<'a> {
         path
     }
 
-    fn execute_in_repo(&self, command: &str) -> Result<(), NoteError> {
+    fn execute(&self, command: &str) -> Result<CommandOutput, NoteError> {
         self.shell.execute(command, &self.path)
+    }
+
+    fn execute_interactive(
+        &self,
+        command: &str,
+    ) -> Result<CommandOutput, NoteError> {
+        self.shell.execute_interactive(command, &self.path)
+    }
+
+    pub fn get_remote_origin_url(&self) -> Option<String> {
+        let result = self
+            .shell
+            .execute("git config --get remote.origin.url", &self.path)
+            .unwrap();
+
+        if result.output == "" {
+            return None;
+        }
+
+        Some(result.output)
     }
 
     pub fn create_nested_file(&self, path: &PathBuf) {
@@ -57,6 +112,7 @@ impl<'a> Repo<'a> {
     }
 
     pub fn open_in_editor(&self, filename: &str) {
+        println!("opening");
         self.create_nested_file(&self.path.join(filename));
 
         let editor: &str = match self.opts.editor {
@@ -64,8 +120,9 @@ impl<'a> Repo<'a> {
             None => DEFAULT_EDITOR,
         };
 
-        self.execute_in_repo(&format!("{} {:?}", editor, filename))
+        self.execute_interactive(&format!("{} {:?}", editor, filename))
             .unwrap();
+        println!("done");
     }
 }
 

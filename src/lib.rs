@@ -38,6 +38,10 @@ pub fn run() -> Result<()> {
     };
 
     repo.open_in_editor(&filename);
+    repo.git_commit_all();
+    if let Some(_) = repo.get_remote_origin_url() {
+        repo.push()
+    }
 
     Ok(())
 }
