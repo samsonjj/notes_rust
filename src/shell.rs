@@ -38,8 +38,23 @@ impl CommandOutput {
 }
 
 impl ShellImpl {
-    pub fn new() -> ShellImpl {
-        ShellImpl {}
+    pub fn new() -> Result<ShellImpl, NoteError> {
+        let child =
+            match std::process::Command::new("sh").arg("--version").output() {
+                Err(_) => {
+                    return Err(NoteError::Message(String::from(
+                        "could not find `sh` on the path.",
+                    )))
+                }
+                Ok(child) => child,
+            };
+
+        match child.status.success() {
+            true => Ok(ShellImpl {}),
+            false => Err(NoteError::Message(String::from(
+                "failed to run `sh --version`",
+            ))),
+        }
     }
 }
 
@@ -55,8 +70,6 @@ impl Shell for ShellImpl {
             .current_dir(dir)
             .output()
             .unwrap();
-
-        println!("done?");
 
         Ok(CommandOutput::new(
             child.status.code().unwrap_or(-1),
@@ -77,13 +90,6 @@ impl Shell for ShellImpl {
 
         let exit_status = p.spawn().unwrap().wait().unwrap();
 
-        if !exit_status.success() {
-            return Err(NoteError::Message(String::from(format!(
-                "editor process returned failure exit status: {:?}",
-                p
-            ))));
-        }
-
         Ok(CommandOutput::new(
             exit_status.code().unwrap_or(-1),
             String::new(),
@@ -98,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_execute() -> Result<(), NoteError> {
-        let shell = ShellImpl::new();
+        let shell = ShellImpl::new().unwrap();
         let command_output =
             shell.execute("echo hello", &std::env::current_dir()?)?;
 
@@ -111,9 +117,13 @@ mod tests {
 
     #[test]
     fn test_execute_interactive() -> Result<(), NoteError> {
-        let shell = ShellImpl::new();
+        let shell = ShellImpl::new().unwrap();
         let command_output = shell
-            .execute_interactive("echo hello", &std::env::current_dir()?)?;
+            .execute_interactive(
+                "echo hello",
+                &std::env::current_dir().unwrap(),
+            )
+            .unwrap();
 
         assert_eq!(command_output.output, "");
         assert_eq!(command_output.error, "");

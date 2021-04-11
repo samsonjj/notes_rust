@@ -15,7 +15,6 @@ fn main() -> Result<()> {
     // catch any error
     if let Err(e) = notes_rust::run() {
         eprintln!("{}", e);
-        return Err(e);
     }
 
     Ok(())

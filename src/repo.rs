@@ -6,6 +6,9 @@ use std::path::PathBuf;
 
 const DEFAULT_EDITOR: &str = "vim";
 
+const REMOTE: &str = "origin";
+const BRANCH: &str = "main";
+
 pub struct Repo<'a> {
     opts: &'a Opts,
     shell: &'a dyn Shell,
@@ -19,10 +22,11 @@ impl<'a> Repo<'a> {
             Some(path) => PathBuf::from(path),
             None => Repo::default_path(),
         };
-        Repo { opts, shell, path }
+
+        Repo { opts, shell, path }.init().unwrap()
     }
 
-    pub fn init(self) -> Result<Repo<'a>, NoteError> {
+    fn init(self) -> Result<Repo<'a>, NoteError> {
         if !self.path.exists() {
             std::fs::create_dir_all(&self.path).unwrap();
         }
@@ -30,22 +34,24 @@ impl<'a> Repo<'a> {
             self.shell.execute("git init", &self.path).unwrap();
 
             // create readme
-            self.shell
-                .execute(
-                    r##"
+            if !self.path.join("README.md").exists() {
+                self.shell
+                    .execute(
+                        r##"
 echo "Notes Repository
 
 See [notes_rust](https://github.com/samsonjj/notes_rust)
 " > README.md
 "##,
-                    &self.path,
-                )
-                .unwrap();
-            self.shell.execute("git add README.md", &self.path).unwrap();
-            self.shell
-                .execute("git commit -m \"first commit\"", &self.path)
-                .unwrap();
+                        &self.path,
+                    )
+                    .unwrap();
+            }
+            self.execute("git add README.md").unwrap();
+            self.execute("git commit -m \"first commit\"").unwrap();
+            self.execute(&format!("git branch -M {}", BRANCH)).unwrap();
         }
+
         Ok(self)
     }
 
@@ -60,8 +66,41 @@ See [notes_rust](https://github.com/samsonjj/notes_rust)
         .unwrap();
     }
 
-    pub fn push(&self) {
-        self.execute_interactive("git push").unwrap();
+    pub fn try_pull(&self) {
+        if let Some(_) = self.get_remote_origin_url() {
+            self.execute_interactive(&format!(
+                "git pull {} {}",
+                REMOTE, BRANCH
+            ))
+            .unwrap();
+        }
+    }
+
+    pub fn try_push_in_background(&self) {
+        if let Some(_) = self.get_remote_origin_url() {
+            self.execute_interactive(&format!(
+                "git push -u {} {} > /dev/null 2>&1 &",
+                REMOTE, BRANCH
+            ))
+            .unwrap();
+        }
+    }
+
+    pub fn git_set_remote_origin(&self, url: &str) {
+        if let Some(_) = self.get_remote_origin_url() {
+            self.execute_interactive(&format!("git remote remove {}", REMOTE))
+                .unwrap();
+        }
+        self.execute_interactive(&format!("git remote add {} {}", REMOTE, url))
+            .unwrap();
+        self.execute_interactive(&format!("git fetch")).unwrap();
+        self.execute_interactive(&format!(
+            "git branch --set-upstream-to={}/{} {}",
+            REMOTE, BRANCH, BRANCH
+        ))
+        .unwrap();
+        self.try_pull();
+        self.try_push_in_background();
     }
 
     fn default_path() -> PathBuf {
@@ -85,7 +124,10 @@ See [notes_rust](https://github.com/samsonjj/notes_rust)
     pub fn get_remote_origin_url(&self) -> Option<String> {
         let result = self
             .shell
-            .execute("git config --get remote.origin.url", &self.path)
+            .execute(
+                &format!("git config --get remote.{}.url", REMOTE),
+                &self.path,
+            )
             .unwrap();
 
         if result.output == "" {
@@ -112,7 +154,6 @@ See [notes_rust](https://github.com/samsonjj/notes_rust)
     }
 
     pub fn open_in_editor(&self, filename: &str) {
-        println!("opening");
         self.create_nested_file(&self.path.join(filename));
 
         let editor: &str = match self.opts.editor {
@@ -122,7 +163,6 @@ See [notes_rust](https://github.com/samsonjj/notes_rust)
 
         self.execute_interactive(&format!("{} {:?}", editor, filename))
             .unwrap();
-        println!("done");
     }
 }
 

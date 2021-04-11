@@ -25,8 +25,14 @@ pub fn run() -> Result<()> {
         return Ok(());
     }
 
-    let shell: ShellImpl = ShellImpl::new();
-    let repo: Repo = Repo::new(&opts, &shell).init().unwrap();
+    let shell: ShellImpl = ShellImpl::new()?;
+    let repo: Repo = Repo::new(&opts, &shell);
+
+    if let Some(ref remote) = opts.remote_url {
+        repo.git_set_remote_origin(remote);
+        repo.try_pull();
+        return Ok(());
+    }
 
     // filename as given in args, or the current date + offset
     let filename = match opts.note_name {
@@ -37,18 +43,17 @@ pub fn run() -> Result<()> {
         }
     };
 
+    repo.try_pull();
     repo.open_in_editor(&filename);
     repo.git_commit_all();
-    if let Some(_) = repo.get_remote_origin_url() {
-        repo.push()
-    }
+    repo.try_push_in_background();
 
     Ok(())
 }
 
 /// Returns a filename compatible date String.
 fn date_filename(now: DateTime<Local>) -> String {
-    now.format("%F").to_string() + ".txt"
+    now.format("%F").to_string() + ".md"
 }
 
 #[cfg(test)]
@@ -58,6 +63,6 @@ mod tests {
     #[test]
     pub fn test_date_filename() {
         let date = date_filename(Local::now());
-        assert_eq!(date.len(), 14);
+        assert_eq!(date.len(), 13);
     }
 }

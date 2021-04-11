@@ -30,6 +30,12 @@ pub struct Opts {
 
     #[structopt(short = "t", long = "tutorial", help = "show the tutorial")]
     pub tutorial: bool,
+
+    #[structopt(
+        long = "set-remote-url",
+        help = "set the git remote repository"
+    )]
+    pub remote_url: Option<String>,
 }
 
 impl Opts {
