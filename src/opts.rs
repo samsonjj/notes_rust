@@ -36,6 +36,9 @@ pub struct Opts {
         help = "set the git remote repository"
     )]
     pub remote_url: Option<String>,
+
+    #[structopt(long = "doctor", help = "diagnose potential issues")]
+    pub doctor: bool,
 }
 
 impl Opts {

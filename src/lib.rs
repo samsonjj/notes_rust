@@ -34,6 +34,11 @@ pub fn run() -> Result<()> {
         return Ok(());
     }
 
+    if opts.doctor {
+        repo.doctor();
+        return Ok(());
+    }
+
     // filename as given in args, or the current date + offset
     let filename = match opts.note_name {
         Some(ref path) => path.clone(),

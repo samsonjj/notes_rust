@@ -2,6 +2,8 @@
 use crate::opts::Opts;
 use crate::shell::{CommandOutput, Shell};
 use crate::NoteError;
+use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 use std::path::PathBuf;
 
 const DEFAULT_EDITOR: &str = "vim";
@@ -163,6 +165,39 @@ See [notes_rust](https://github.com/samsonjj/notes_rust)
 
         self.execute_interactive(&format!("{} {:?}", editor, filename))
             .unwrap();
+    }
+
+    pub fn doctor(&self) {
+        let file_names = std::fs::read_dir(&self.path).unwrap();
+        let mut unique: HashMap<String, Vec<String>> = HashMap::new();
+
+        file_names
+            .into_iter()
+            .map(|os_string| {
+                os_string.unwrap().file_name().into_string().unwrap()
+            })
+            .for_each(|string| {
+                let v = string
+                    .split(".")
+                    .into_iter()
+                    .map(move |x| String::from(x))
+                    .collect::<Vec<_>>();
+
+                let vec: Vec<String> = Vec::new();
+                let file_extension_list =
+                    unique.entry(v[0].clone()).or_insert(vec);
+                file_extension_list.push(v[1].clone());
+            });
+
+        unique.into_iter().for_each(|entry| {
+            if entry.1.len() > 1 {
+                println!(
+                    "Duplicate file prefix: {}.{:?}",
+                    entry.0,
+                    entry.1.join(",")
+                )
+            }
+        });
     }
 }
 
