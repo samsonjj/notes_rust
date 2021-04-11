@@ -2,7 +2,6 @@ use crate::NoteError;
 use std::path::PathBuf;
 use std::process::Command;
 
-const SHELL_COMMAND: &str = "sh";
 const SHELL_FLAGS: &[&str] = &["-c"];
 
 pub trait Shell {
@@ -19,7 +18,9 @@ pub trait Shell {
     ) -> Result<CommandOutput, NoteError>;
 }
 
-pub struct ShellImpl {}
+pub struct ShellImpl {
+    pub shell: String,
+}
 
 pub struct CommandOutput {
     pub status: i32,
@@ -39,21 +40,24 @@ impl CommandOutput {
 
 impl ShellImpl {
     pub fn new() -> Result<ShellImpl, NoteError> {
-        let child =
-            match std::process::Command::new("sh").arg("--version").output() {
-                Err(_) => {
-                    return Err(NoteError::Message(String::from(
-                        "could not find `sh` on the path.",
-                    )))
-                }
-                Ok(child) => child,
-            };
+        let shells = vec!["sh", "bash", "zsh"];
+        let shell = shells.into_iter().find(|x| {
+            match std::process::Command::new(&x).arg("--version").output() {
+                Err(_) => false,
+                Ok(child) => child.status.success(),
+            }
+        });
 
-        match child.status.success() {
-            true => Ok(ShellImpl {}),
-            false => Err(NoteError::Message(String::from(
-                "failed to run `sh --version`",
+        match shell {
+            None => Err(NoteError::Message(String::from(
+                "failed to run sh or bash",
             ))),
+            Some(shell) => {
+                println!("using shell {}", shell);
+                Ok(ShellImpl {
+                    shell: String::from(shell),
+                })
+            }
         }
     }
 }
@@ -64,7 +68,7 @@ impl Shell for ShellImpl {
         command: &str,
         dir: &PathBuf,
     ) -> Result<CommandOutput, NoteError> {
-        let child = Command::new(SHELL_COMMAND)
+        let child = Command::new(&self.shell)
             .args(SHELL_FLAGS)
             .arg(command)
             .current_dir(dir)
@@ -83,7 +87,7 @@ impl Shell for ShellImpl {
         command: &str,
         dir: &PathBuf,
     ) -> Result<CommandOutput, NoteError> {
-        let mut p = Command::new(SHELL_COMMAND);
+        let mut p = Command::new(&self.shell);
         p.args(SHELL_FLAGS);
         p.arg(command);
         p.current_dir(dir);

@@ -2,8 +2,7 @@
 use crate::opts::Opts;
 use crate::shell::{CommandOutput, Shell};
 use crate::NoteError;
-use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 const DEFAULT_EDITOR: &str = "vim";
