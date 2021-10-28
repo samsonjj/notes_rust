@@ -1,3 +1,5 @@
+const TEXT: &str = include_str!("../docs/tutorial.txt");
+
 pub trait Tutorial {
     fn display();
 }
@@ -6,56 +8,6 @@ pub struct TutorialImpl {}
 
 impl Tutorial for TutorialImpl {
     fn display() {
-        println!(
-            r#"
-                              Tutorial
-
-        Using the notes cli is easy. It can be used with most
-        text editors, writes notes to the file system, and
-        supports backups via git.
-
-        To get started, just type `notes`.
-
-            $ notes     # opens a note for today's date in vim
-
-        By default, a note is opened with the current date as
-        its name. If you want to open a note for a different day,
-        use the offset flag `-o`.
-
-            $ notes -o -1   # uses the current date -1 day
-                            # positive numbers get future dates
-
-        To open a note tied to a subject rather than a date, just
-        type a title immediately after.
-
-            $ notes grocery-list    # opens a note titled
-                                    # "grocery-list"
-
-        Both the date method and subject method are valid ways to
-        create notes. Use the first method for daily notes, and
-        the second for anything else. The date method is more akin
-        to journaling. It's great for writing your thoughts down,
-        tracking your schedule, creating daily checklists, etc.
-        Named notes are great for writing down information for
-        reference in the future; for example, writing down useful
-        links, notes on presentations, or planning events.
-
-        By default notes are opened in vim. You can use any editor
-        which lets you open a file from the command line. Use the
-        editor flag `-e` or EDITOR environment variable to use a
-        different editor.
-
-            $ notes -e nano     # opens today's note in nano
-
-              or
-
-            $ notes -e "open -a typora" # opens in typora (mac)
-
-        You can also use more complex commands to launch a better
-        editor.
-
-                            end tutorial.
-"#
-        )
+        println!("{}", TEXT);
     }
 }
