@@ -47,6 +47,13 @@ impl Tutorial for TutorialImpl {
 
             $ notes -e nano     # opens today's note in nano
 
+              or
+
+            $ notes -e "open -a typora" # opens in typora (mac)
+
+        You can also use more complex commands to launch a better
+        editor.
+
                             end tutorial.
 "#
         )

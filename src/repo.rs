@@ -10,6 +10,8 @@ const DEFAULT_EDITOR: &str = "vim";
 const REMOTE: &str = "origin";
 const BRANCH: &str = "main";
 
+const MARKER_FILENAME: &str = "notes-repo-marker";
+
 pub struct Repo<'a> {
     opts: &'a Opts,
     shell: &'a dyn Shell,
@@ -18,39 +20,52 @@ pub struct Repo<'a> {
 
 // non trait functionality
 impl<'a> Repo<'a> {
-    pub fn new(opts: &'a Opts, shell: &'a dyn Shell) -> Repo<'a> {
+    pub fn try_new(
+        opts: &'a Opts,
+        shell: &'a dyn Shell,
+    ) -> Result<Repo<'a>, NoteError> {
         let path: PathBuf = match &opts.repo_path {
             Some(path) => PathBuf::from(path),
             None => Repo::default_path(),
         };
 
-        Repo { opts, shell, path }.init().unwrap()
+        Ok(Repo { opts, shell, path }.init()?)
     }
 
     fn init(self) -> Result<Repo<'a>, NoteError> {
         if !self.path.exists() {
             std::fs::create_dir_all(&self.path).unwrap();
         }
-        if !self.path.join(".git").exists() {
-            self.shell.execute("git init", &self.path).unwrap();
-
+        if self.path.join(".git").exists() {
+            // already a git repo
+            if !self.path.join(MARKER_FILENAME).exists() {
+                // we're in a git repo that is not a notes repo
+                // !!!dangerous!!!
+                return Err(NoteError::Message(format!("The given repo path is a git repository, but is missing the `{}` file, meaning you may be trying to write notes in an uninteded directory. If you really want to store notes there, run `touch .notes-repo-marker` in that directory.", MARKER_FILENAME)));
+            }
+        } else {
+            // git init
+            self.shell.execute("git init", &self.path)?;
+            // create marker file, so we will know in the future if this folder is intended for notes
+            self.shell.execute(
+                format!("touch {}", MARKER_FILENAME).as_str(),
+                &self.path,
+            )?;
             // create readme
             if !self.path.join("README.md").exists() {
-                self.shell
-                    .execute(
-                        r##"
+                self.shell.execute(
+                    r##"
 echo "Notes Repository
 
 See [notes_rust](https://github.com/samsonjj/notes_rust)
 " > README.md
 "##,
-                        &self.path,
-                    )
-                    .unwrap();
+                    &self.path,
+                )?;
             }
-            self.execute("git add README.md").unwrap();
-            self.execute("git commit -m \"first commit\"").unwrap();
-            self.execute(&format!("git branch -M {}", BRANCH)).unwrap();
+            self.execute("git add README.md")?;
+            self.execute("git commit -m \"first commit\"")?;
+            self.execute(&format!("git branch -M {}", BRANCH))?;
         }
 
         Ok(self)

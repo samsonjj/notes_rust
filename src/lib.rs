@@ -13,11 +13,11 @@ use crate::repo::Repo;
 use crate::shell::ShellImpl;
 use crate::tutorial::{Tutorial, TutorialImpl};
 
-type Result<T> = std::result::Result<T, NoteError>;
+type NoteResult<T> = std::result::Result<T, NoteError>;
 
 /// Gets the cli options and config from file, and opens the specified
 /// file in the text editor.
-pub fn run() -> Result<()> {
+pub fn run() -> NoteResult<()> {
     let opts = Opts::load();
 
     if opts.tutorial {
@@ -26,7 +26,7 @@ pub fn run() -> Result<()> {
     }
 
     let shell: ShellImpl = ShellImpl::new()?;
-    let repo: Repo = Repo::new(&opts, &shell);
+    let repo: Repo = Repo::try_new(&opts, &shell)?;
 
     if let Some(ref remote) = opts.remote_url {
         repo.git_set_remote_origin(remote);

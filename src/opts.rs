@@ -4,7 +4,7 @@ use structopt::StructOpt;
 #[structopt(
     name = "rust_notes",
     about = r#"A simple cli for taking daily notes.
-type `notes --tutorial` for a brief introducition"#
+type `notes --tutorial` for a brief introduction"#
 )]
 pub struct Opts {
     #[structopt()]
