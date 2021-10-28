@@ -7,6 +7,7 @@ use notes_rust::NoteError;
 
 fn main() -> Result<()> {
     // Error handling methodology:
+    //
     //  user error: return a NoteError, which gets passed up the call stack.
     //  system error: panic
     //  never error: just unwrap

@@ -40,8 +40,14 @@ impl CommandOutput {
 
 impl ShellImpl {
     pub fn new() -> Result<ShellImpl, NoteError> {
-        let shells = vec!["sh", "bash", "zsh"];
-        let shell = shells.into_iter().find(|x| {
+        let mut shells: Vec<String> =
+            vec!["sh".to_string(), "bash".to_string(), "zsh".to_string()];
+
+        if let Ok(val) = std::env::var("SHELL") {
+            shells.push(val);
+        }
+
+        let shell = shells.iter().find(|x| {
             match std::process::Command::new(&x).arg("--version").output() {
                 Err(_) => false,
                 Ok(child) => child.status.success(),
@@ -49,15 +55,13 @@ impl ShellImpl {
         });
 
         match shell {
-            None => Err(NoteError::Message(String::from(
-                "failed to run sh or bash",
+            None => Err(NoteError::Message(format!(
+                "failed to find a valid shell program. Tried {:?}",
+                shells
             ))),
-            Some(shell) => {
-                println!("using shell {}", shell);
-                Ok(ShellImpl {
-                    shell: String::from(shell),
-                })
-            }
+            Some(shell) => Ok(ShellImpl {
+                shell: String::from(shell),
+            }),
         }
     }
 }
