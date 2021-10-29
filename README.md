@@ -15,15 +15,14 @@ Currently, only installation via [cargo](https://github.com/rust-lang/cargo) is 
 
 ### via Cargo
 
-If you already have cargo installed, just you can install it easily from crates.io
-(if I've uploaded it there by now) like so:
+If you already have cargo installed, just you can run:
 
 ```bash
-cargo install notes_rust
-notes --help
+cargo install --git https://github.com/samsonjj/notes_rust
+notes_rust --help
 ```
 
-Or you can compile it from the source code:
+Or you can clone the source and compile it:
 
 ```bash
 git clone https://github.com/samsonjj/notes_rust
