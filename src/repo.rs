@@ -10,7 +10,7 @@ const DEFAULT_EDITOR: &str = "vim";
 const REMOTE: &str = "origin";
 const BRANCH: &str = "main";
 
-const MARKER_FILENAME: &str = "notes-repo-marker";
+const MARKER_FILENAME: &str = ".notes-repo-marker";
 
 pub struct Repo<'a> {
     opts: &'a Opts,
@@ -41,7 +41,7 @@ impl<'a> Repo<'a> {
             if !self.path.join(MARKER_FILENAME).exists() {
                 // we're in a git repo that is not a notes repo
                 // !!!dangerous!!!
-                return Err(NoteError::Message(format!("The given repo path ({0}) is a git repository, but is missing the `{1}` file, meaning you may be trying to write notes in an uninteded directory. If you really want to store notes there, run `touch {0}/.notes-repo-marker`.", self.path.display(), MARKER_FILENAME)));
+                return Err(NoteError::Message(format!("The given repo path ({0}) is a git repository, but is missing the `{1}` file, meaning you may be trying to write notes in an uninteded directory. If you really want to store notes there, run `touch {0}/{1}`.", self.path.display(), MARKER_FILENAME)));
             }
         } else {
             // git init
